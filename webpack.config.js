@@ -7,6 +7,7 @@ module.exports = {
     popup: "./src/popup/popup.ts",
     sidepanel: "./src/sidepanel/sidepanel.ts",
     dashboard: "./src/dashboard/dashboard.ts",
+    options: "./src/options/options.ts",
   },
   module: {
     rules: [

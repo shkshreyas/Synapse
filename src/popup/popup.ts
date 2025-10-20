@@ -1,7 +1,7 @@
-import { MessageHandler } from '../utils/messaging';
-import { ContentStore } from '../storage/contentStore';
-import { NaturalLanguageSearch } from '../search/naturalLanguageSearch';
-import { StoredContent } from '../types/storage';
+import { MessageHandler } from "../utils/messaging";
+import { ContentStore } from "../storage/contentStore";
+import { NaturalLanguageSearch } from "../search/naturalLanguageSearch";
+import { StoredContent } from "../types/storage";
 
 /**
  * Popup script for MindScribe Chrome extension
@@ -26,11 +26,11 @@ class PopupController {
   }
 
   private async initialize(): Promise<void> {
-    console.log('MindScribe popup initializing...');
+    console.log("MindScribe popup initializing...");
 
     // Wait for DOM to be ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => this.setupUI());
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => this.setupUI());
     } else {
       this.setupUI();
     }
@@ -38,10 +38,14 @@ class PopupController {
 
   private setupUI(): void {
     // Get DOM elements
-    this.searchInput = document.getElementById('searchInput') as HTMLInputElement;
-    this.captureButton = document.getElementById('captureButton') as HTMLButtonElement;
-    this.recentList = document.getElementById('recentList') || undefined;
-    this.statusElement = document.getElementById('status') || undefined;
+    this.searchInput = document.getElementById(
+      "searchInput"
+    ) as HTMLInputElement;
+    this.captureButton = document.getElementById(
+      "captureButton"
+    ) as HTMLButtonElement;
+    this.recentList = document.getElementById("recentList") || undefined;
+    this.statusElement = document.getElementById("status") || undefined;
 
     // Create autocomplete container
     this.createAutocompleteContainer();
@@ -52,14 +56,14 @@ class PopupController {
     // Load initial data
     this.loadRecentCaptures();
 
-    console.log('MindScribe popup UI initialized');
+    console.log("MindScribe popup UI initialized");
   }
 
   private createAutocompleteContainer(): void {
     if (!this.searchInput) return;
 
-    this.autocompleteContainer = document.createElement('div');
-    this.autocompleteContainer.className = 'autocomplete-container';
+    this.autocompleteContainer = document.createElement("div");
+    this.autocompleteContainer.className = "autocomplete-container";
     this.autocompleteContainer.style.cssText = `
       position: absolute;
       top: 100%;
@@ -79,40 +83,45 @@ class PopupController {
     // Insert after search input
     const searchSection = this.searchInput.parentElement;
     if (searchSection) {
-      searchSection.style.position = 'relative';
+      searchSection.style.position = "relative";
       searchSection.appendChild(this.autocompleteContainer);
     }
   }
 
   private setupEventListeners(): void {
+    // Capture button
+    if (this.captureButton) {
+      this.captureButton.addEventListener("click", () => this.handleCapture());
+    }
+
     // Search input with autocomplete
     if (this.searchInput) {
-      this.searchInput.addEventListener('input', (e) => {
+      this.searchInput.addEventListener("input", (e) => {
         const query = (e.target as HTMLInputElement).value;
         this.handleSearchInput(query);
       });
 
-      this.searchInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
+      this.searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
           e.preventDefault();
           const query = (e.target as HTMLInputElement).value;
           this.performSearch(query);
-        } else if (e.key === 'Escape') {
+        } else if (e.key === "Escape") {
           this.hideAutocomplete();
-        } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
           this.handleAutocompleteNavigation(e.key);
           e.preventDefault();
         }
       });
 
-      this.searchInput.addEventListener('focus', () => {
-        const query = this.searchInput?.value || '';
+      this.searchInput.addEventListener("focus", () => {
+        const query = this.searchInput?.value || "";
         if (query.length > 0) {
           this.showAutocomplete(query);
         }
       });
 
-      this.searchInput.addEventListener('blur', () => {
+      this.searchInput.addEventListener("blur", () => {
         // Delay hiding to allow clicking on autocomplete items
         setTimeout(() => this.hideAutocomplete(), 150);
       });
@@ -120,23 +129,23 @@ class PopupController {
 
     // Capture button
     if (this.captureButton) {
-      this.captureButton.addEventListener('click', () => {
+      this.captureButton.addEventListener("click", () => {
         this.handleCapture();
       });
     }
 
     // Side panel button
-    const sidePanelButton = document.getElementById('sidePanelButton');
+    const sidePanelButton = document.getElementById("sidePanelButton");
     if (sidePanelButton) {
-      sidePanelButton.addEventListener('click', () => {
+      sidePanelButton.addEventListener("click", () => {
         this.openSidePanel();
       });
     }
 
     // Dashboard button
-    const dashboardButton = document.getElementById('dashboardButton');
+    const dashboardButton = document.getElementById("dashboardButton");
     if (dashboardButton) {
-      dashboardButton.addEventListener('click', () => {
+      dashboardButton.addEventListener("click", () => {
         this.openDashboard();
       });
     }
@@ -145,22 +154,24 @@ class PopupController {
     this.addSettingsButton();
 
     // Click outside to close autocomplete
-    document.addEventListener('click', (e) => {
-      if (!this.searchInput?.contains(e.target as Node) &&
-        !this.autocompleteContainer?.contains(e.target as Node)) {
+    document.addEventListener("click", (e) => {
+      if (
+        !this.searchInput?.contains(e.target as Node) &&
+        !this.autocompleteContainer?.contains(e.target as Node)
+      ) {
         this.hideAutocomplete();
       }
     });
   }
 
   private addSettingsButton(): void {
-    const footer = document.querySelector('.footer');
+    const footer = document.querySelector(".footer");
     if (footer) {
-      const settingsButton = document.createElement('button');
-      settingsButton.id = 'settingsButton';
-      settingsButton.className = 'btn';
-      settingsButton.textContent = 'Settings';
-      settingsButton.addEventListener('click', () => {
+      const settingsButton = document.createElement("button");
+      settingsButton.id = "settingsButton";
+      settingsButton.className = "btn";
+      settingsButton.textContent = "Settings";
+      settingsButton.addEventListener("click", () => {
         this.openSettings();
       });
       footer.appendChild(settingsButton);
@@ -194,12 +205,16 @@ class PopupController {
       // Get recent searches that match
       const searchHistory = await this.searchEngine.getSearchHistory(5);
       const recentMatches = searchHistory
-        .filter(entry => entry.query.toLowerCase().includes(query.toLowerCase()))
-        .map(entry => entry.query)
+        .filter((entry) =>
+          entry.query.toLowerCase().includes(query.toLowerCase())
+        )
+        .map((entry) => entry.query)
         .slice(0, 3);
 
       // Combine suggestions
-      const allSuggestions = [...new Set([...recentMatches, ...suggestions])].slice(0, 8);
+      const allSuggestions = [
+        ...new Set([...recentMatches, ...suggestions]),
+      ].slice(0, 8);
 
       if (allSuggestions.length === 0) {
         this.hideAutocomplete();
@@ -207,27 +222,39 @@ class PopupController {
       }
 
       // Build autocomplete HTML
-      let html = '';
+      let html = "";
 
       if (recentMatches.length > 0) {
         html += '<div class="autocomplete-section">Recent Searches</div>';
-        recentMatches.forEach(suggestion => {
-          html += `<div class="autocomplete-item recent" data-query="${this.escapeHtml(suggestion)}">
+        recentMatches.forEach((suggestion) => {
+          html += `<div class="autocomplete-item recent" data-query="${this.escapeHtml(
+            suggestion
+          )}">
             <span class="autocomplete-icon">🕒</span>
-            <span class="autocomplete-text">${this.highlightMatch(suggestion, query)}</span>
+            <span class="autocomplete-text">${this.highlightMatch(
+              suggestion,
+              query
+            )}</span>
           </div>`;
         });
       }
 
-      const newSuggestions = suggestions.filter(s => !recentMatches.includes(s));
+      const newSuggestions = suggestions.filter(
+        (s) => !recentMatches.includes(s)
+      );
       if (newSuggestions.length > 0) {
         if (recentMatches.length > 0) {
           html += '<div class="autocomplete-section">Suggestions</div>';
         }
-        newSuggestions.forEach(suggestion => {
-          html += `<div class="autocomplete-item suggestion" data-query="${this.escapeHtml(suggestion)}">
+        newSuggestions.forEach((suggestion) => {
+          html += `<div class="autocomplete-item suggestion" data-query="${this.escapeHtml(
+            suggestion
+          )}">
             <span class="autocomplete-icon">🔍</span>
-            <span class="autocomplete-text">${this.highlightMatch(suggestion, query)}</span>
+            <span class="autocomplete-text">${this.highlightMatch(
+              suggestion,
+              query
+            )}</span>
           </div>`;
         });
       }
@@ -235,29 +262,30 @@ class PopupController {
       this.autocompleteContainer.innerHTML = html;
 
       // Add click listeners to autocomplete items
-      this.autocompleteContainer.querySelectorAll('.autocomplete-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-          const query = (e.currentTarget as HTMLElement).dataset.query;
-          if (query && this.searchInput) {
-            this.searchInput.value = query;
-            this.performSearch(query);
-            this.hideAutocomplete();
-          }
+      this.autocompleteContainer
+        .querySelectorAll(".autocomplete-item")
+        .forEach((item) => {
+          item.addEventListener("click", (e) => {
+            const query = (e.currentTarget as HTMLElement).dataset.query;
+            if (query && this.searchInput) {
+              this.searchInput.value = query;
+              this.performSearch(query);
+              this.hideAutocomplete();
+            }
+          });
         });
-      });
 
-      this.autocompleteContainer.style.display = 'block';
+      this.autocompleteContainer.style.display = "block";
       this.isAutocompleteVisible = true;
-
     } catch (error) {
-      console.error('Error showing autocomplete:', error);
+      console.error("Error showing autocomplete:", error);
       this.hideAutocomplete();
     }
   }
 
   private hideAutocomplete(): void {
     if (this.autocompleteContainer) {
-      this.autocompleteContainer.style.display = 'none';
+      this.autocompleteContainer.style.display = "none";
       this.isAutocompleteVisible = false;
     }
   }
@@ -265,23 +293,26 @@ class PopupController {
   private handleAutocompleteNavigation(key: string): void {
     if (!this.isAutocompleteVisible || !this.autocompleteContainer) return;
 
-    const items = this.autocompleteContainer.querySelectorAll('.autocomplete-item');
+    const items =
+      this.autocompleteContainer.querySelectorAll(".autocomplete-item");
     if (items.length === 0) return;
 
-    const currentActive = this.autocompleteContainer.querySelector('.autocomplete-item.active');
+    const currentActive = this.autocompleteContainer.querySelector(
+      ".autocomplete-item.active"
+    );
     let newIndex = 0;
 
     if (currentActive) {
       const currentIndex = Array.from(items).indexOf(currentActive);
-      if (key === 'ArrowDown') {
+      if (key === "ArrowDown") {
         newIndex = (currentIndex + 1) % items.length;
       } else {
         newIndex = currentIndex === 0 ? items.length - 1 : currentIndex - 1;
       }
-      currentActive.classList.remove('active');
+      currentActive.classList.remove("active");
     }
 
-    items[newIndex].classList.add('active');
+    items[newIndex].classList.add("active");
 
     // Update search input with selected suggestion
     const selectedQuery = (items[newIndex] as HTMLElement).dataset.query;
@@ -291,12 +322,15 @@ class PopupController {
   }
 
   private highlightMatch(text: string, query: string): string {
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    return text.replace(regex, '<strong>$1</strong>');
+    const regex = new RegExp(
+      `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+      "gi"
+    );
+    return text.replace(regex, "<strong>$1</strong>");
   }
 
   private escapeHtml(text: string): string {
-    const div = document.createElement('div');
+    const div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
   }
@@ -304,89 +338,101 @@ class PopupController {
   private async performSearch(query: string): Promise<void> {
     if (!query.trim()) return;
 
-    console.log('Performing search for:', query);
-    this.updateStatus('Searching...');
+    console.log("Performing search for:", query);
+    this.updateStatus("Searching...");
     this.hideAutocomplete();
 
     try {
       // Generate unique search ID
-      this.currentSearchId = `search_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      this.currentSearchId = `search_${Date.now()}_${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
 
       // Perform search using natural language search engine
       const searchResult = await this.searchEngine.search(query, {
         maxResults: 10,
         useSemanticSearch: true,
-        minRelevanceScore: 0.1
+        minRelevanceScore: 0.1,
       });
 
       if (searchResult.success && searchResult.semanticMatches) {
         if (searchResult.semanticMatches.length === 0) {
-          this.updateStatus('No results found. Try different keywords.', 'info');
+          this.updateStatus(
+            "No results found. Try different keywords.",
+            "info"
+          );
         } else {
-          this.updateStatus(`Found ${searchResult.semanticMatches.length} results`, 'success');
+          this.updateStatus(
+            `Found ${searchResult.semanticMatches.length} results`,
+            "success"
+          );
           this.displaySearchResults(searchResult.semanticMatches);
         }
       } else {
-        this.updateStatus('Search failed: ' + (searchResult.error || 'Unknown error'), 'error');
+        this.updateStatus(
+          "Search failed: " + (searchResult.error || "Unknown error"),
+          "error"
+        );
       }
-
     } catch (error) {
-      console.error('Search error:', error);
-      this.updateStatus('Search error: ' + (error as Error).message, 'error');
+      console.error("Search error:", error);
+      this.updateStatus("Search error: " + (error as Error).message, "error");
     }
   }
 
   private displaySearchResults(results: any[]): void {
     // For now, just open dashboard with search results
     // In a full implementation, we might show a preview in the popup
-    const searchQuery = this.searchInput?.value || '';
-    const dashboardUrl = chrome.runtime.getURL(`dashboard.html?search=${encodeURIComponent(searchQuery)}`);
+    const searchQuery = this.searchInput?.value || "";
+    const dashboardUrl = chrome.runtime.getURL(
+      `dashboard.html?search=${encodeURIComponent(searchQuery)}`
+    );
     chrome.tabs.create({ url: dashboardUrl });
     window.close();
   }
 
   private async handleCapture(): Promise<void> {
-    console.log('Initiating content capture');
-    this.updateStatus('Capturing content...');
+    console.log("Initiating content capture");
+    this.updateStatus("Capturing content...");
 
     if (this.captureButton) {
       this.captureButton.disabled = true;
-      this.captureButton.textContent = 'Capturing...';
+      this.captureButton.textContent = "Capturing...";
     }
 
     try {
       // Get current tab info
       const [activeTab] = await chrome.tabs.query({
         active: true,
-        currentWindow: true
+        currentWindow: true,
       });
 
       if (!activeTab?.url) {
-        throw new Error('No active tab found');
+        throw new Error("No active tab found");
       }
 
       const response = await MessageHandler.sendToBackground({
-        type: 'CAPTURE_CONTENT',
+        type: "CAPTURE_CONTENT",
         url: activeTab.url,
         manual: true,
-        id: MessageHandler.generateMessageId()
+        id: MessageHandler.generateMessageId(),
       });
 
-      console.log('Capture response:', response);
+      console.log("Capture response:", response);
 
       if (response.success) {
-        this.updateStatus('Content captured successfully!', 'success');
+        this.updateStatus("Content captured successfully!", "success");
         this.loadRecentCaptures(); // Refresh recent list
       } else {
-        this.updateStatus('Capture failed: ' + response.error, 'error');
+        this.updateStatus("Capture failed: " + response.error, "error");
       }
     } catch (error) {
-      console.error('Capture error:', error);
-      this.updateStatus('Capture error: ' + (error as Error).message, 'error');
+      console.error("Capture error:", error);
+      this.updateStatus("Capture error: " + (error as Error).message, "error");
     } finally {
       if (this.captureButton) {
         this.captureButton.disabled = false;
-        this.captureButton.textContent = 'Capture Current Page';
+        this.captureButton.textContent = "Capture Current Page";
       }
     }
   }
@@ -394,25 +440,25 @@ class PopupController {
   private async openSidePanel(): Promise<void> {
     try {
       await MessageHandler.sendToBackground({
-        type: 'OPEN_SIDE_PANEL',
-        id: MessageHandler.generateMessageId()
+        type: "OPEN_SIDE_PANEL",
+        id: MessageHandler.generateMessageId(),
       });
 
       // Close popup after opening side panel
       window.close();
     } catch (error) {
-      console.error('Error opening side panel:', error);
-      this.updateStatus('Error opening side panel', 'error');
+      console.error("Error opening side panel:", error);
+      this.updateStatus("Error opening side panel", "error");
     }
   }
 
   private openDashboard(): void {
-    chrome.tabs.create({ url: chrome.runtime.getURL('dashboard.html') });
+    chrome.tabs.create({ url: chrome.runtime.getURL("dashboard.html") });
     window.close();
   }
 
   private openSettings(): void {
-    chrome.tabs.create({ url: chrome.runtime.getURL('settings.html') });
+    chrome.tabs.create({ url: chrome.runtime.getURL("settings.html") });
     window.close();
   }
 
@@ -422,13 +468,17 @@ class PopupController {
     try {
       // Load recent captures from storage
       const recentResult = await this.contentStore.list({
-        sortBy: 'timestamp',
-        sortDirection: 'desc',
-        limit: 5
+        sortBy: "timestamp",
+        sortDirection: "desc",
+        limit: 5,
       });
 
-      if (recentResult.success && recentResult.data && recentResult.data.length > 0) {
-        let html = '';
+      if (
+        recentResult.success &&
+        recentResult.data &&
+        recentResult.data.length > 0
+      ) {
+        let html = "";
 
         for (const content of recentResult.data) {
           const timeAgo = this.formatTimeAgo(new Date(content.timestamp));
@@ -445,15 +495,15 @@ class PopupController {
         this.recentList.innerHTML = html;
 
         // Add click listeners to recent items
-        this.recentList.querySelectorAll('.recent-item').forEach(item => {
-          item.addEventListener('click', (e) => {
-            const contentId = (e.currentTarget as HTMLElement).dataset.contentId;
+        this.recentList.querySelectorAll(".recent-item").forEach((item) => {
+          item.addEventListener("click", (e) => {
+            const contentId = (e.currentTarget as HTMLElement).dataset
+              .contentId;
             if (contentId) {
               this.openContentInDashboard(contentId);
             }
           });
         });
-
       } else {
         this.recentList.innerHTML = `
           <div class="recent-item">
@@ -462,9 +512,8 @@ class PopupController {
           </div>
         `;
       }
-
     } catch (error) {
-      console.error('Error loading recent captures:', error);
+      console.error("Error loading recent captures:", error);
       if (this.recentList) {
         this.recentList.innerHTML = `
           <div class="recent-item">
@@ -477,7 +526,9 @@ class PopupController {
   }
 
   private openContentInDashboard(contentId: string): void {
-    const dashboardUrl = chrome.runtime.getURL(`dashboard.html?content=${contentId}`);
+    const dashboardUrl = chrome.runtime.getURL(
+      `dashboard.html?content=${contentId}`
+    );
     chrome.tabs.create({ url: dashboardUrl });
     window.close();
   }
@@ -489,7 +540,7 @@ class PopupController {
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffMins < 1) return 'Just now';
+    if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
@@ -498,24 +549,27 @@ class PopupController {
 
   private extractDomain(url: string): string {
     try {
-      return new URL(url).hostname.replace('www.', '');
+      return new URL(url).hostname.replace("www.", "");
     } catch {
-      return 'Unknown';
+      return "Unknown";
     }
   }
 
-  private updateStatus(message: string, type: 'info' | 'success' | 'error' = 'info'): void {
+  private updateStatus(
+    message: string,
+    type: "info" | "success" | "error" = "info"
+  ): void {
     if (!this.statusElement) return;
 
     this.statusElement.textContent = message;
     this.statusElement.className = `status ${type}`;
 
     // Clear status after 3 seconds for non-error messages
-    if (type !== 'error') {
+    if (type !== "error") {
       setTimeout(() => {
         if (this.statusElement) {
-          this.statusElement.textContent = '';
-          this.statusElement.className = 'status';
+          this.statusElement.textContent = "";
+          this.statusElement.className = "status";
         }
       }, 3000);
     }

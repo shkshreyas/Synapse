@@ -91,7 +91,3 @@ Synapse prioritizes privacy by:
 - Storing data locally in IndexedDB
 - Offering optional cloud features with explicit user consent
 - Providing complete data export capabilities
-
-## License
-
-[Add your license here]
