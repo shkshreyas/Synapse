@@ -1,943 +1,979 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MindScribe Dashboard</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #f8f9fa;
-      color: #202124;
-      line-height: 1.5;
-    }
-
-    .header {
-      background: white;
-      border-bottom: 1px solid #e0e0e0;
-      padding: 16px 24px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-
-    .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .logo-section {
-      display: flex;
-      align-items: center;
-    }
-
-    .logo {
-      width: 32px;
-      height: 32px;
-      background: #4285f4;
-      border-radius: 8px;
-      margin-right: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-      font-size: 16px;
-    }
-
-    .title {
-      font-size: 20px;
-      font-weight: 600;
-      color: #202124;
-    }
-
-    .search-section {
-      flex: 1;
-      max-width: 600px;
-      margin: 0 32px;
-      position: relative;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 1px solid #dadce0;
-      border-radius: 24px;
-      font-size: 16px;
-      outline: none;
-      transition: all 0.2s;
-    }
-
-    .search-input:focus {
-      border-color: #4285f4;
-      box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .btn {
-      padding: 8px 16px;
-      border: 1px solid #dadce0;
-      border-radius: 6px;
-      background: white;
-      color: #3c4043;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .btn:hover {
-      background: #f8f9fa;
-      border-color: #c0c0c0;
-    }
-
-    .btn.primary {
-      background: #4285f4;
-      color: white;
-      border-color: #4285f4;
-    }
-
-    .btn.primary:hover {
-      background: #3367d6;
-    }
-
-    .main-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 24px;
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: 24px;
-      min-height: calc(100vh - 80px);
-    }
-
-    .sidebar {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      height: fit-content;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 104px;
-    }
-
-    .sidebar-section {
-      margin-bottom: 24px;
-    }
-
-    .sidebar-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #5f6368;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .filter-group {
-      margin-bottom: 16px;
-    }
-
-    .filter-label {
-      display: block;
-      font-size: 13px;
-      color: #3c4043;
-      margin-bottom: 6px;
-    }
-
-    .filter-select {
-      width: 100%;
-      padding: 8px 12px;
-      border: 1px solid #dadce0;
-      border-radius: 6px;
-      font-size: 13px;
-      background: white;
-      outline: none;
-    }
-
-    .filter-select:focus {
-      border-color: #4285f4;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .stat-item {
-      text-align: center;
-      padding: 12px;
-      background: #f8f9fa;
-      border-radius: 8px;
-    }
-
-    .stat-number {
-      font-size: 18px;
-      font-weight: 600;
-      color: #4285f4;
-    }
-
-    .stat-label {
-      font-size: 11px;
-      color: #5f6368;
-      margin-top: 2px;
-    }
-
-    .content-area {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      overflow: hidden;
-    }
-
-    .content-header {
-      padding: 20px 24px;
-      border-bottom: 1px solid #e0e0e0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .content-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #202124;
-    }
-
-    .view-toggle {
-      display: flex;
-      background: #f8f9fa;
-      border-radius: 6px;
-      padding: 2px;
-    }
-
-    .view-btn {
-      padding: 6px 12px;
-      border: none;
-      background: transparent;
-      color: #5f6368;
-      font-size: 12px;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: all 0.2s;
-    }
-
-    .view-btn.active {
-      background: white;
-      color: #4285f4;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    }
-
-    .content-body {
-      padding: 24px;
-    }
-
-    /* Knowledge Graph View */
-    .graph-container {
-      width: 100%;
-      height: 600px;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .graph-controls {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      display: flex;
-      gap: 8px;
-      z-index: 10;
-    }
-
-    .graph-btn {
-      padding: 6px 10px;
-      background: white;
-      border: 1px solid #dadce0;
-      border-radius: 4px;
-      font-size: 12px;
-      cursor: pointer;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-    }
-
-    .graph-btn:hover {
-      background: #f8f9fa;
-    }
-
-    /* List View */
-    .content-list {
-      display: grid;
-      gap: 16px;
-    }
-
-    .content-item {
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 16px;
-      transition: all 0.2s;
-      cursor: pointer;
-    }
-
-    .content-item:hover {
-      border-color: #4285f4;
-      box-shadow: 0 2px 8px rgba(66, 133, 244, 0.1);
-    }
-
-    .content-item-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-
-    .content-item-title {
-      font-size: 16px;
-      font-weight: 500;
-      color: #202124;
-      margin-bottom: 4px;
-      line-height: 1.3;
-    }
-
-    .content-item-meta {
-      font-size: 12px;
-      color: #5f6368;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .content-item-actions {
-      display: flex;
-      gap: 8px;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-
-    .content-item:hover .content-item-actions {
-      opacity: 1;
-    }
-
-    .action-btn {
-      padding: 4px 8px;
-      border: 1px solid #dadce0;
-      border-radius: 4px;
-      background: white;
-      color: #5f6368;
-      font-size: 11px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .action-btn:hover {
-      background: #f8f9fa;
-      color: #202124;
-    }
-
-    .content-item-summary {
-      font-size: 14px;
-      color: #3c4043;
-      line-height: 1.4;
-      margin-bottom: 8px;
-    }
-
-    .content-item-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .tag {
-      padding: 2px 8px;
-      background: #e8f0fe;
-      color: #1967d2;
-      font-size: 11px;
-      border-radius: 12px;
-      font-weight: 500;
-    }
-
-    /* Grid View */
-    .content-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 16px;
-    }
-
-    .content-card {
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      overflow: hidden;
-      transition: all 0.2s;
-      cursor: pointer;
-      background: white;
-    }
-
-    .content-card:hover {
-      border-color: #4285f4;
-      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.1);
-      transform: translateY(-2px);
-    }
-
-    .content-card-image {
-      width: 100%;
-      height: 120px;
-      background: #f8f9fa;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #5f6368;
-      font-size: 12px;
-    }
-
-    .content-card-body {
-      padding: 16px;
-    }
-
-    .content-card-title {
-      font-size: 14px;
-      font-weight: 500;
-      color: #202124;
-      margin-bottom: 6px;
-      line-height: 1.3;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .content-card-summary {
-      font-size: 12px;
-      color: #5f6368;
-      line-height: 1.4;
-      margin-bottom: 8px;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .content-card-meta {
-      font-size: 11px;
-      color: #5f6368;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: #5f6368;
-    }
-
-    .empty-icon {
-      font-size: 48px;
-      margin-bottom: 16px;
-      opacity: 0.5;
-    }
-
-    .empty-title {
-      font-size: 18px;
-      font-weight: 500;
-      margin-bottom: 8px;
-      color: #3c4043;
-    }
-
-    .empty-description {
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
-
-    /* Loading State */
-    .loading-state {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 60px 20px;
-      color: #5f6368;
-    }
-
-    .spinner {
-      width: 32px;
-      height: 32px;
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #4285f4;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-right: 12px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      .main-content {
-        grid-template-columns: 1fr;
-        padding: 16px;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Synapse Dashboard</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
-      .sidebar {
-        position: static;
-        margin-bottom: 16px;
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: #f8f9fa;
+        color: #202124;
+        line-height: 1.5;
+      }
+
+      .header {
+        background: white;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 16px 24px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       }
 
       .header-content {
-        flex-direction: column;
-        gap: 16px;
-        align-items: stretch;
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .logo-section {
+        display: flex;
+        align-items: center;
+      }
+
+      .logo {
+        width: 32px;
+        height: 32px;
+        background: #4285f4;
+        border-radius: 8px;
+        margin-right: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 16px;
+      }
+
+      .title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #202124;
       }
 
       .search-section {
-        margin: 0;
-        max-width: none;
+        flex: 1;
+        max-width: 600px;
+        margin: 0 32px;
+        position: relative;
       }
 
+      .search-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #dadce0;
+        border-radius: 24px;
+        font-size: 16px;
+        outline: none;
+        transition: all 0.2s;
+      }
+
+      .search-input:focus {
+        border-color: #4285f4;
+        box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .btn {
+        padding: 8px 16px;
+        border: 1px solid #dadce0;
+        border-radius: 6px;
+        background: white;
+        color: #3c4043;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .btn:hover {
+        background: #f8f9fa;
+        border-color: #c0c0c0;
+      }
+
+      .btn.primary {
+        background: #4285f4;
+        color: white;
+        border-color: #4285f4;
+      }
+
+      .btn.primary:hover {
+        background: #3367d6;
+      }
+
+      .main-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 24px;
+        min-height: calc(100vh - 80px);
+      }
+
+      .sidebar {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        height: fit-content;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 104px;
+      }
+
+      .sidebar-section {
+        margin-bottom: 24px;
+      }
+
+      .sidebar-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #5f6368;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .filter-group {
+        margin-bottom: 16px;
+      }
+
+      .filter-label {
+        display: block;
+        font-size: 13px;
+        color: #3c4043;
+        margin-bottom: 6px;
+      }
+
+      .filter-select {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #dadce0;
+        border-radius: 6px;
+        font-size: 13px;
+        background: white;
+        outline: none;
+      }
+
+      .filter-select:focus {
+        border-color: #4285f4;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .stat-item {
+        text-align: center;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+
+      .stat-number {
+        font-size: 18px;
+        font-weight: 600;
+        color: #4285f4;
+      }
+
+      .stat-label {
+        font-size: 11px;
+        color: #5f6368;
+        margin-top: 2px;
+      }
+
+      .content-area {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .content-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .content-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #202124;
+      }
+
+      .view-toggle {
+        display: flex;
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 2px;
+      }
+
+      .view-btn {
+        padding: 6px 12px;
+        border: none;
+        background: transparent;
+        color: #5f6368;
+        font-size: 12px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.2s;
+      }
+
+      .view-btn.active {
+        background: white;
+        color: #4285f4;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      .content-body {
+        padding: 24px;
+      }
+
+      /* Knowledge Graph View */
+      .graph-container {
+        width: 100%;
+        height: 600px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .graph-controls {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        gap: 8px;
+        z-index: 10;
+      }
+
+      .graph-btn {
+        padding: 6px 10px;
+        background: white;
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      .graph-btn:hover {
+        background: #f8f9fa;
+      }
+
+      /* List View */
+      .content-list {
+        display: grid;
+        gap: 16px;
+      }
+
+      .content-item {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 16px;
+        transition: all 0.2s;
+        cursor: pointer;
+      }
+
+      .content-item:hover {
+        border-color: #4285f4;
+        box-shadow: 0 2px 8px rgba(66, 133, 244, 0.1);
+      }
+
+      .content-item-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+
+      .content-item-title {
+        font-size: 16px;
+        font-weight: 500;
+        color: #202124;
+        margin-bottom: 4px;
+        line-height: 1.3;
+      }
+
+      .content-item-meta {
+        font-size: 12px;
+        color: #5f6368;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .content-item-actions {
+        display: flex;
+        gap: 8px;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      .content-item:hover .content-item-actions {
+        opacity: 1;
+      }
+
+      .action-btn {
+        padding: 4px 8px;
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        background: white;
+        color: #5f6368;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .action-btn:hover {
+        background: #f8f9fa;
+        color: #202124;
+      }
+
+      .content-item-summary {
+        font-size: 14px;
+        color: #3c4043;
+        line-height: 1.4;
+        margin-bottom: 8px;
+      }
+
+      .content-item-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .tag {
+        padding: 2px 8px;
+        background: #e8f0fe;
+        color: #1967d2;
+        font-size: 11px;
+        border-radius: 12px;
+        font-weight: 500;
+      }
+
+      /* Grid View */
       .content-grid {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
       }
-    }
 
-    /* Analytics Dashboard Styles */
-    .analytics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
+      .content-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.2s;
+        cursor: pointer;
+        background: white;
+      }
 
-    .analytics-card {
-      background: white;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 20px;
-    }
+      .content-card:hover {
+        border-color: #4285f4;
+        box-shadow: 0 4px 12px rgba(66, 133, 244, 0.1);
+        transform: translateY(-2px);
+      }
 
-    .analytics-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #5f6368;
-      margin-bottom: 12px;
-    }
+      .content-card-image {
+        width: 100%;
+        height: 120px;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #5f6368;
+        font-size: 12px;
+      }
 
-    .analytics-value {
-      font-size: 24px;
-      font-weight: 600;
-      color: #4285f4;
-      margin-bottom: 4px;
-    }
+      .content-card-body {
+        padding: 16px;
+      }
 
-    .analytics-change {
-      font-size: 12px;
-      color: #34a853;
-    }
+      .content-card-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #202124;
+        margin-bottom: 6px;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
 
-    .analytics-change.negative {
-      color: #ea4335;
-    }
+      .content-card-summary {
+        font-size: 12px;
+        color: #5f6368;
+        line-height: 1.4;
+        margin-bottom: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
 
-    .chart-container {
-      height: 200px;
-      background: #f8f9fa;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #5f6368;
-      font-size: 12px;
-    }
-  </style>
-</head>
-<body>
-  <header class="header">
-    <div class="header-content">
-      <div class="logo-section">
-        <div class="logo">M</div>
-        <div class="title">MindScribe Dashboard</div>
-      </div>
-      
-      <div class="search-section">
-        <input 
-          type="text" 
-          id="globalSearch" 
-          class="search-input" 
-          placeholder="Search your knowledge base..."
-        >
-      </div>
-      
-      <div class="header-actions">
-        <button id="bulkActionsBtn" class="btn" style="display: none;">
-          <span>📋</span>
-          Bulk Actions
-        </button>
-        <button id="captureBtn" class="btn primary">
-          <span>📄</span>
-          Capture Page
-        </button>
-        <button id="settingsBtn" class="btn">
-          <span>⚙️</span>
-          Settings
-        </button>
-      </div>
-    </div>
-  </header>
+      .content-card-meta {
+        font-size: 11px;
+        color: #5f6368;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
 
-  <main class="main-content">
-    <aside class="sidebar">
-      <div class="sidebar-section">
-        <div class="sidebar-title">Quick Stats</div>
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-number" id="totalItems">0</div>
-            <div class="stat-label">Total Items</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-number" id="thisWeek">0</div>
-            <div class="stat-label">This Week</div>
-          </div>
+      /* Empty State */
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #5f6368;
+      }
+
+      .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+      }
+
+      .empty-title {
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: #3c4043;
+      }
+
+      .empty-description {
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+
+      /* Loading State */
+      .loading-state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        color: #5f6368;
+      }
+
+      .spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #4285f4;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 12px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .main-content {
+          grid-template-columns: 1fr;
+          padding: 16px;
+        }
+
+        .sidebar {
+          position: static;
+          margin-bottom: 16px;
+        }
+
+        .header-content {
+          flex-direction: column;
+          gap: 16px;
+          align-items: stretch;
+        }
+
+        .search-section {
+          margin: 0;
+          max-width: none;
+        }
+
+        .content-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Analytics Dashboard Styles */
+      .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .analytics-card {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+      }
+
+      .analytics-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #5f6368;
+        margin-bottom: 12px;
+      }
+
+      .analytics-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: #4285f4;
+        margin-bottom: 4px;
+      }
+
+      .analytics-change {
+        font-size: 12px;
+        color: #34a853;
+      }
+
+      .analytics-change.negative {
+        color: #ea4335;
+      }
+
+      .chart-container {
+        height: 200px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #5f6368;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-content">
+        <div class="logo-section">
+          <div class="logo">M</div>
+          <div class="title">Synapse Dashboard</div>
         </div>
-      </div>
 
-      <div class="sidebar-section">
-        <div class="sidebar-title">Filters</div>
-        
-        <div class="filter-group">
-          <label class="filter-label">Content Type</label>
-          <select id="typeFilter" class="filter-select">
-            <option value="">All Types</option>
-            <option value="article">Articles</option>
-            <option value="video">Videos</option>
-            <option value="documentation">Documentation</option>
-            <option value="social">Social Media</option>
-            <option value="other">Other</option>
-          </select>
+        <div class="search-section">
+          <input
+            type="text"
+            id="globalSearch"
+            class="search-input"
+            placeholder="Search your knowledge base..."
+          />
         </div>
 
-        <div class="filter-group">
-          <label class="filter-label">Time Period</label>
-          <select id="timeFilter" class="filter-select">
-            <option value="">All Time</option>
-            <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="year">This Year</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label class="filter-label">Sort By</label>
-          <select id="sortFilter" class="filter-select">
-            <option value="timestamp">Date Added</option>
-            <option value="lastAccessed">Last Accessed</option>
-            <option value="timesAccessed">Most Accessed</option>
-            <option value="title">Title</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-title">Quick Actions</div>
-        <button id="exportBtn" class="btn" style="width: 100%; margin-bottom: 8px;">
-          Export Data
-        </button>
-        <button id="analyticsBtn" class="btn" style="width: 100%;">
-          View Analytics
-        </button>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-title">Content Management</div>
-        <button id="selectAllBtn" class="btn" style="width: 100%; margin-bottom: 8px;">
-          Select All
-        </button>
-        <button id="clearSelectionBtn" class="btn" style="width: 100%; margin-bottom: 8px;">
-          Clear Selection
-        </button>
-        <div id="bulkActionsDropdown" style="display: none;">
-          <select id="bulkActionSelect" class="filter-select" style="margin-bottom: 8px;">
-            <option value="">Choose Action...</option>
-            <option value="delete">Delete Selected</option>
-            <option value="updateCategory">Change Category</option>
-            <option value="addTags">Add Tags</option>
-            <option value="removeTags">Remove Tags</option>
-            <option value="updateImportance">Set Importance</option>
-            <option value="export">Export Selected</option>
-          </select>
-          <button id="executeBulkAction" class="btn" style="width: 100%;">
-            Execute
+        <div class="header-actions">
+          <button id="bulkActionsBtn" class="btn" style="display: none">
+            <span>📋</span>
+            Bulk Actions
+          </button>
+          <button id="captureBtn" class="btn primary">
+            <span>📄</span>
+            Capture Page
+          </button>
+          <button id="settingsBtn" class="btn">
+            <span>⚙️</span>
+            Settings
           </button>
         </div>
       </div>
-    </aside>
+    </header>
 
-    <div class="content-area">
-      <div class="content-header">
-        <div class="content-title" id="contentTitle">Your Knowledge Base</div>
-        <div class="view-toggle">
-          <button class="view-btn active" data-view="list">List</button>
-          <button class="view-btn" data-view="grid">Grid</button>
-          <button class="view-btn" data-view="graph">Graph</button>
-        </div>
-      </div>
-      
-      <div class="content-body">
-        <!-- List View -->
-        <div id="listView" class="content-list">
-          <!-- Content items will be populated here -->
-        </div>
-
-        <!-- Grid View -->
-        <div id="gridView" class="content-grid" style="display: none;">
-          <!-- Content cards will be populated here -->
-        </div>
-
-        <!-- Graph View -->
-        <div id="graphView" style="display: none;">
-          <div class="graph-container">
-            <div class="graph-controls">
-              <button class="graph-btn" id="zoomIn">Zoom In</button>
-              <button class="graph-btn" id="zoomOut">Zoom Out</button>
-              <button class="graph-btn" id="resetView">Reset</button>
+    <main class="main-content">
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-title">Quick Stats</div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-number" id="totalItems">0</div>
+              <div class="stat-label">Total Items</div>
             </div>
-            <div id="knowledgeGraph" style="width: 100%; height: 100%;">
-              <!-- Knowledge graph will be rendered here -->
+            <div class="stat-item">
+              <div class="stat-number" id="thisWeek">0</div>
+              <div class="stat-label">This Week</div>
             </div>
           </div>
         </div>
 
-        <!-- Analytics View -->
-        <div id="analyticsView" style="display: none;">
-          <div class="analytics-grid">
-            <div class="analytics-card">
-              <div class="analytics-title">Total Captures</div>
-              <div class="analytics-value" id="analyticsTotal">0</div>
-              <div class="analytics-change" id="analyticsTotalChange">+0% from last month</div>
-            </div>
-            <div class="analytics-card">
-              <div class="analytics-title">Most Active Day</div>
-              <div class="analytics-value" id="analyticsMostActive">-</div>
-              <div class="analytics-change" id="analyticsMostActiveCount">0 captures</div>
-            </div>
-            <div class="analytics-card">
-              <div class="analytics-title">Top Category</div>
-              <div class="analytics-value" id="analyticsTopCategory">-</div>
-              <div class="analytics-change" id="analyticsTopCategoryCount">0 items</div>
-            </div>
-            <div class="analytics-card">
-              <div class="analytics-title">Search Queries</div>
-              <div class="analytics-value" id="analyticsSearches">0</div>
-              <div class="analytics-change" id="analyticsSearchesChange">+0% from last month</div>
-            </div>
+        <div class="sidebar-section">
+          <div class="sidebar-title">Filters</div>
+
+          <div class="filter-group">
+            <label class="filter-label">Content Type</label>
+            <select id="typeFilter" class="filter-select">
+              <option value="">All Types</option>
+              <option value="article">Articles</option>
+              <option value="video">Videos</option>
+              <option value="documentation">Documentation</option>
+              <option value="social">Social Media</option>
+              <option value="other">Other</option>
+            </select>
           </div>
-          
-          <div class="analytics-card">
-            <div class="analytics-title">Capture Activity (Last 30 Days)</div>
-            <div class="chart-container">
-              Chart visualization will be implemented here
-            </div>
+
+          <div class="filter-group">
+            <label class="filter-label">Time Period</label>
+            <select id="timeFilter" class="filter-select">
+              <option value="">All Time</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="year">This Year</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label">Sort By</label>
+            <select id="sortFilter" class="filter-select">
+              <option value="timestamp">Date Added</option>
+              <option value="lastAccessed">Last Accessed</option>
+              <option value="timesAccessed">Most Accessed</option>
+              <option value="title">Title</option>
+            </select>
           </div>
         </div>
 
-        <!-- Loading State -->
-        <div id="loadingState" class="loading-state">
-          <div class="spinner"></div>
-          <span>Loading your content...</span>
-        </div>
-
-        <!-- Empty State -->
-        <div id="emptyState" class="empty-state" style="display: none;">
-          <div class="empty-icon">📚</div>
-          <div class="empty-title">No content yet</div>
-          <div class="empty-description">
-            Start capturing web content to build your personal knowledge base
-          </div>
-          <button class="btn primary" onclick="window.close()">
-            Start Capturing
+        <div class="sidebar-section">
+          <div class="sidebar-title">Quick Actions</div>
+          <button
+            id="exportBtn"
+            class="btn"
+            style="width: 100%; margin-bottom: 8px"
+          >
+            Export Data
+          </button>
+          <button id="analyticsBtn" class="btn" style="width: 100%">
+            View Analytics
           </button>
         </div>
-      </div>
-    </div>
-  </main>
 
-  <!-- Bulk Actions Modal -->
-  <div id="bulkActionsModal" class="modal" style="display: none;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="modalTitle">Bulk Action</h3>
-        <button class="modal-close" onclick="dashboard.closeBulkActionsModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div id="modalContent">
-          <!-- Dynamic content based on action type -->
+        <div class="sidebar-section">
+          <div class="sidebar-title">Content Management</div>
+          <button
+            id="selectAllBtn"
+            class="btn"
+            style="width: 100%; margin-bottom: 8px"
+          >
+            Select All
+          </button>
+          <button
+            id="clearSelectionBtn"
+            class="btn"
+            style="width: 100%; margin-bottom: 8px"
+          >
+            Clear Selection
+          </button>
+          <div id="bulkActionsDropdown" style="display: none">
+            <select
+              id="bulkActionSelect"
+              class="filter-select"
+              style="margin-bottom: 8px"
+            >
+              <option value="">Choose Action...</option>
+              <option value="delete">Delete Selected</option>
+              <option value="updateCategory">Change Category</option>
+              <option value="addTags">Add Tags</option>
+              <option value="removeTags">Remove Tags</option>
+              <option value="updateImportance">Set Importance</option>
+              <option value="export">Export Selected</option>
+            </select>
+            <button id="executeBulkAction" class="btn" style="width: 100%">
+              Execute
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <div class="content-area">
+        <div class="content-header">
+          <div class="content-title" id="contentTitle">Your Knowledge Base</div>
+          <div class="view-toggle">
+            <button class="view-btn active" data-view="list">List</button>
+            <button class="view-btn" data-view="grid">Grid</button>
+            <button class="view-btn" data-view="graph">Graph</button>
+          </div>
+        </div>
+
+        <div class="content-body">
+          <!-- List View -->
+          <div id="listView" class="content-list">
+            <!-- Content items will be populated here -->
+          </div>
+
+          <!-- Grid View -->
+          <div id="gridView" class="content-grid" style="display: none">
+            <!-- Content cards will be populated here -->
+          </div>
+
+          <!-- Graph View -->
+          <div id="graphView" style="display: none">
+            <div class="graph-container">
+              <div class="graph-controls">
+                <button class="graph-btn" id="zoomIn">Zoom In</button>
+                <button class="graph-btn" id="zoomOut">Zoom Out</button>
+                <button class="graph-btn" id="resetView">Reset</button>
+              </div>
+              <div id="knowledgeGraph" style="width: 100%; height: 100%">
+                <!-- Knowledge graph will be rendered here -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Analytics View -->
+          <div id="analyticsView" style="display: none">
+            <div class="analytics-grid">
+              <div class="analytics-card">
+                <div class="analytics-title">Total Captures</div>
+                <div class="analytics-value" id="analyticsTotal">0</div>
+                <div class="analytics-change" id="analyticsTotalChange">
+                  +0% from last month
+                </div>
+              </div>
+              <div class="analytics-card">
+                <div class="analytics-title">Most Active Day</div>
+                <div class="analytics-value" id="analyticsMostActive">-</div>
+                <div class="analytics-change" id="analyticsMostActiveCount">
+                  0 captures
+                </div>
+              </div>
+              <div class="analytics-card">
+                <div class="analytics-title">Top Category</div>
+                <div class="analytics-value" id="analyticsTopCategory">-</div>
+                <div class="analytics-change" id="analyticsTopCategoryCount">
+                  0 items
+                </div>
+              </div>
+              <div class="analytics-card">
+                <div class="analytics-title">Search Queries</div>
+                <div class="analytics-value" id="analyticsSearches">0</div>
+                <div class="analytics-change" id="analyticsSearchesChange">
+                  +0% from last month
+                </div>
+              </div>
+            </div>
+
+            <div class="analytics-card">
+              <div class="analytics-title">Capture Activity (Last 30 Days)</div>
+              <div class="chart-container">
+                Chart visualization will be implemented here
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div id="loadingState" class="loading-state">
+            <div class="spinner"></div>
+            <span>Loading your content...</span>
+          </div>
+
+          <!-- Empty State -->
+          <div id="emptyState" class="empty-state" style="display: none">
+            <div class="empty-icon">📚</div>
+            <div class="empty-title">No content yet</div>
+            <div class="empty-description">
+              Start capturing web content to build your personal knowledge base
+            </div>
+            <button class="btn primary" onclick="window.close()">
+              Start Capturing
+            </button>
+          </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn" onclick="dashboard.closeBulkActionsModal()">Cancel</button>
-        <button id="confirmBulkAction" class="btn primary">Confirm</button>
+    </main>
+
+    <!-- Bulk Actions Modal -->
+    <div id="bulkActionsModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modalTitle">Bulk Action</h3>
+          <button
+            class="modal-close"
+            onclick="dashboard.closeBulkActionsModal()"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="modalContent">
+            <!-- Dynamic content based on action type -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn" onclick="dashboard.closeBulkActionsModal()">
+            Cancel
+          </button>
+          <button id="confirmBulkAction" class="btn primary">Confirm</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script src="dist/dashboard.js"></script>
+    <script src="dist/dashboard.js"></script>
 
-  <style>
-    /* Modal styles */
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
+    <style>
+      /* Modal styles */
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
 
-    .modal-content {
-      background: white;
-      border-radius: 12px;
-      max-width: 500px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    }
+      .modal-content {
+        background: white;
+        border-radius: 12px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      }
 
-    .modal-header {
-      padding: 20px 24px 16px;
-      border-bottom: 1px solid #e0e0e0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
+      .modal-header {
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
 
-    .modal-header h3 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-      color: #202124;
-    }
+      .modal-header h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #202124;
+      }
 
-    .modal-close {
-      background: none;
-      border: none;
-      font-size: 24px;
-      color: #5f6368;
-      cursor: pointer;
-      padding: 0;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      transition: background-color 0.2s;
-    }
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: #5f6368;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+      }
 
-    .modal-close:hover {
-      background: #f8f9fa;
-    }
+      .modal-close:hover {
+        background: #f8f9fa;
+      }
 
-    .modal-body {
-      padding: 20px 24px;
-    }
+      .modal-body {
+        padding: 20px 24px;
+      }
 
-    .modal-footer {
-      padding: 16px 24px 20px;
-      border-top: 1px solid #e0e0e0;
-      display: flex;
-      gap: 12px;
-      justify-content: flex-end;
-    }
+      .modal-footer {
+        padding: 16px 24px 20px;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+      }
 
-    .form-group {
-      margin-bottom: 16px;
-    }
+      .form-group {
+        margin-bottom: 16px;
+      }
 
-    .form-label {
-      display: block;
-      font-size: 14px;
-      font-weight: 500;
-      color: #202124;
-      margin-bottom: 6px;
-    }
+      .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: #202124;
+        margin-bottom: 6px;
+      }
 
-    .form-input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #dadce0;
-      border-radius: 6px;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
+      .form-input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #dadce0;
+        border-radius: 6px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
 
-    .form-input:focus {
-      border-color: #4285f4;
-      box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
-    }
+      .form-input:focus {
+        border-color: #4285f4;
+        box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+      }
 
-    .form-textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
+      .form-textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
 
-    .checkbox-item {
-      display: flex;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid #f0f0f0;
-    }
+      .checkbox-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+      }
 
-    .checkbox-item:last-child {
-      border-bottom: none;
-    }
+      .checkbox-item:last-child {
+        border-bottom: none;
+      }
 
-    .checkbox-item input[type="checkbox"] {
-      margin-right: 12px;
-    }
+      .checkbox-item input[type="checkbox"] {
+        margin-right: 12px;
+      }
 
-    .checkbox-item label {
-      flex: 1;
-      font-size: 14px;
-      color: #202124;
-      cursor: pointer;
-    }
+      .checkbox-item label {
+        flex: 1;
+        font-size: 14px;
+        color: #202124;
+        cursor: pointer;
+      }
 
-    .selected-count {
-      background: #e8f0fe;
-      color: #1967d2;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 16px;
-    }
-  </style>
-</body>
+      .selected-count {
+        background: #e8f0fe;
+        color: #1967d2;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 16px;
+      }
+    </style>
+  </body>
 </html>

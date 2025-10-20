@@ -1,5 +1,5 @@
 {
-  "name": "mindscribe-chrome-extension",
+  "name": "synapse-chrome-extension",
   "version": "1.0.0",
   "description": "Personal knowledge management Chrome extension",
   "scripts": {
