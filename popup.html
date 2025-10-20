@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MindScribe</title>
+  <style>
+    body {
+      width: 350px;
+      min-height: 400px;
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      background: #ffffff;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .logo {
+      width: 24px;
+      height: 24px;
+      background: #4285f4;
+      border-radius: 4px;
+      margin-right: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 12px;
+    }
+
+    .title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #202124;
+    }
+
+    .search-section {
+      margin-bottom: 16px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #dadce0;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      box-sizing: border-box;
+    }
+
+    .search-input:focus {
+      border-color: #4285f4;
+      box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.1);
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #dadce0;
+      border-radius: 6px;
+      background: white;
+      color: #3c4043;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: #f8f9fa;
+      border-color: #c0c0c0;
+    }
+
+    .btn.primary {
+      background: #4285f4;
+      color: white;
+      border-color: #4285f4;
+    }
+
+    .btn.primary:hover {
+      background: #3367d6;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .recent-section {
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #5f6368;
+      margin-bottom: 8px;
+    }
+
+    .recent-item {
+      padding: 8px;
+      border-radius: 6px;
+      background: #f8f9fa;
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .recent-item:hover {
+      background: #e8f0fe;
+    }
+
+    .recent-title {
+      font-size: 13px;
+      color: #202124;
+      margin-bottom: 2px;
+    }
+
+    .recent-subtitle {
+      font-size: 11px;
+      color: #5f6368;
+    }
+
+    .status {
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .status.info {
+      background: #e8f0fe;
+      color: #1967d2;
+    }
+
+    .status.success {
+      background: #e6f4ea;
+      color: #137333;
+    }
+
+    .status.error {
+      background: #fce8e6;
+      color: #d93025;
+    }
+
+    .footer {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      gap: 8px;
+    }
+
+    .footer .btn {
+      font-size: 12px;
+      padding: 6px 10px;
+    }
+
+    /* Autocomplete styles */
+    .autocomplete-container {
+      background: white;
+      border: 1px solid #dadce0;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .autocomplete-section {
+      padding: 8px 12px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #5f6368;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #f0f0f0;
+      background: #f8f9fa;
+    }
+
+    .autocomplete-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+      color: #202124;
+      transition: background-color 0.2s;
+    }
+
+    .autocomplete-item:hover,
+    .autocomplete-item.active {
+      background: #e8f0fe;
+    }
+
+    .autocomplete-icon {
+      margin-right: 8px;
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    .autocomplete-text {
+      flex: 1;
+    }
+
+    .autocomplete-text strong {
+      color: #1967d2;
+      font-weight: 600;
+    }
+
+    .recent-item {
+      cursor: pointer;
+      transition: all 0.2s;
+      border-radius: 6px;
+    }
+
+    .recent-item:hover {
+      background: #e8f0fe;
+      transform: translateY(-1px);
+    }
+
+    .recent-item:active {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">M</div>
+    <div class="title">MindScribe</div>
+  </div>
+
+  <div class="search-section">
+    <input 
+      type="text" 
+      id="searchInput" 
+      class="search-input" 
+      placeholder="Search your knowledge base..."
+    >
+  </div>
+
+  <div class="actions">
+    <button id="captureButton" class="btn primary">Capture Current Page</button>
+  </div>
+
+  <div class="recent-section">
+    <div class="section-title">Recent Captures</div>
+    <div id="recentList">
+      <!-- Recent items will be populated by JavaScript -->
+    </div>
+  </div>
+
+  <div id="status" class="status"></div>
+
+  <div class="footer">
+    <button id="sidePanelButton" class="btn">Side Panel</button>
+    <button id="dashboardButton" class="btn">Dashboard</button>
+  </div>
+
+  <script src="dist/popup.js"></script>
+</body>
+</html>
