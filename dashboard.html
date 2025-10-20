@@ -3,6 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; 
+                   script-src 'self' 'unsafe-inline' 'unsafe-eval';
+                   style-src 'self' 'unsafe-inline';
+                   img-src 'self' data: https:;
+                   connect-src 'self' https:;"
+    />
     <title>Synapse Dashboard</title>
     <style>
       * {
@@ -17,6 +25,98 @@
         background: #f8f9fa;
         color: #202124;
         line-height: 1.5;
+      }
+
+      /* List View Styles */
+      .content-list {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .content-item {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-left: 4px solid #4285f4;
+        transition: all 0.3s ease;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 20px;
+      }
+      .content-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      }
+
+      /* Grid View Styles */
+      .content-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+        padding: 24px;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      .grid-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+      }
+      .grid-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+      }
+      .card-header {
+        background: #f1f3f4;
+        padding: 16px;
+        border-bottom: 1px solid #dadce0;
+      }
+      .card-content {
+        padding: 16px;
+        flex: 1;
+      }
+      .card-footer {
+        padding: 12px 16px;
+        background: #f8f9fa;
+        border-top: 1px solid #dadce0;
+      }
+
+      /* Graph View Styles */
+      .graph-container {
+        width: 100%;
+        height: calc(100vh - 200px);
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin: 24px auto;
+        max-width: 1400px;
+        position: relative;
+      }
+      .graph-controls {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: white;
+        padding: 8px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: flex;
+        gap: 8px;
+      }
+      .graph-legend {
+        position: absolute;
+        bottom: 16px;
+        left: 16px;
+        background: white;
+        padding: 12px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       }
 
       .header {
@@ -48,6 +148,214 @@
         background: #4285f4;
         border-radius: 8px;
         margin-right: 12px;
+      }
+
+      /* Enhanced Grid View Styles */
+      .content-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+        padding: 24px;
+      }
+
+      .grid-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .grid-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+      }
+
+      .card-header {
+        padding: 16px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .card-category {
+        font-size: 0.85em;
+        color: #5f6368;
+        margin-bottom: 8px;
+      }
+
+      .card-title {
+        font-size: 1.2em;
+        color: #1a73e8;
+        margin: 0;
+      }
+
+      .card-content {
+        padding: 16px;
+        flex: 1;
+      }
+
+      .card-preview {
+        color: #3c4043;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 4;
+        overflow: hidden;
+        line-clamp: 4;
+      }
+
+      .card-tags {
+        margin-top: 16px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .card-footer {
+        padding: 12px 16px;
+        background: #f8f9fa;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .card-meta {
+        display: flex;
+        gap: 16px;
+        color: #5f6368;
+        font-size: 0.9em;
+      }
+
+      /* Graph View Enhancements */
+      .graph-container {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        padding: 24px;
+        margin: 24px;
+        position: relative;
+        min-height: 600px;
+      }
+
+      .graph-controls {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        background: white;
+        padding: 8px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: flex;
+        gap: 8px;
+      }
+
+      .control-btn {
+        background: #f1f3f4;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 12px;
+        cursor: pointer;
+        color: #1a73e8;
+        font-weight: 500;
+      }
+
+      .control-btn:hover {
+        background: #e8f0fe;
+      }
+
+      .layout-select {
+        padding: 8px;
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        background: white;
+      }
+
+      .graph-legend {
+        position: absolute;
+        bottom: 24px;
+        left: 24px;
+        background: white;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      .legend-title {
+        font-weight: 500;
+        margin-bottom: 8px;
+      }
+
+      .legend-items {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+      }
+
+      .legend-label {
+        font-size: 0.9em;
+        color: #3c4043;
+      }
+
+      /* Importance Indicator */
+      .importance-indicator {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .importance-dots {
+        display: flex;
+        gap: 2px;
+      }
+
+      .importance-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #dadce0;
+      }
+
+      .importance-dot.filled {
+        background: #1a73e8;
+      }
+
+      .importance-label {
+        font-size: 0.8em;
+        color: #5f6368;
+      }
+
+      /* Empty State */
+      .empty-state {
+        text-align: center;
+        padding: 48px;
+        color: #5f6368;
+      }
+
+      .empty-state-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+      }
+
+      .empty-state h3 {
+        color: #202124;
+        margin-bottom: 8px;
+      }
         display: flex;
         align-items: center;
         justify-content: center;

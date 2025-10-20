@@ -35,15 +35,21 @@ export class ContentExtractor {
             const cleanedDocument = this.cleanDocument(document.cloneNode(true) as Document, extractionOptions);
 
             // Extract main content
-            const mainContent = this.extractMainContent(cleanedDocument);
+            const content = this.extractMainContent(cleanedDocument);
+            if (!content.text) {
+                throw new Error('No content could be extracted');
+            }
 
             // Extract metadata
-            const metadata = this.extractMetadata(cleanedDocument, mainContent);
+            const metadata = this.extractMetadata(cleanedDocument);
 
-            // Extract additional elements if requested
-            const images = extractionOptions.includeImages ? this.extractImages(cleanedDocument) : [];
-            const links = extractionOptions.includeLinks ? this.extractLinks(cleanedDocument) : [];
-            const headings = extractionOptions.includeHeadings ? this.extractHeadings(cleanedDocument) : [];
+            const result: ContentExtractionResult = {
+                title: content.title || document.title,
+                text: content.text,
+                author: metadata.author,
+                publishDate: metadata.publishDate,
+                keywords: metadata.keywords,
+                confidence: this.calculateConfidence(content, metadata)
 
             // Calculate confidence score
             const confidence = this.calculateConfidence(mainContent, metadata);

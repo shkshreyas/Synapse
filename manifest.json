@@ -4,14 +4,7 @@
   "version": "1.0.0",
   "description": "Your personal second brain - capture, organize, and rediscover web content with AI",
 
-  "permissions": [
-    "activeTab",
-    "storage",
-    "tabs",
-    "scripting",
-    "sidePanel",
-    "aiOriginTrial"
-  ],
+  "permissions": ["activeTab", "storage", "tabs", "scripting", "sidePanel"],
 
   "host_permissions": ["http://*/*", "https://*/*"],
 
@@ -36,6 +29,8 @@
     "default_path": "sidepanel.html"
   },
 
+  "options_page": "options.html",
+
   "web_accessible_resources": [
     {
       "resources": ["dist/*"],
@@ -48,7 +43,5 @@
     "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  },
-
-  "options_page": "options.html"
+  }
 }

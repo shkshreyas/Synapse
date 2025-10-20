@@ -1,6 +1,10 @@
 import { ContentStore } from "../storage/contentStore";
 import { NaturalLanguageSearch } from "../search/naturalLanguageSearch";
-import { StoredContent, ContentRelationship } from "../types/storage";
+import {
+  StoredContent,
+  ContentRelationship,
+  ContentMetadata,
+} from "../types/storage";
 import {
   InteractiveKnowledgeGraph,
   GraphNode,
@@ -9,6 +13,7 @@ import {
 } from "./knowledgeGraph";
 import { AnalyticsEngine, AnalyticsData, ChartRenderer } from "./analytics";
 import { ContentManager, ContentFilter, BulkOperation } from "./contentManager";
+import { addSampleContent, addSampleRelationships } from "../utils/sampleData";
 
 /**
  * Dashboard controller for Synapse Chrome extension
@@ -28,19 +33,19 @@ class DashboardController {
   private selectedContentIds: Set<string> = new Set();
 
   // DOM elements
-  private globalSearch?: HTMLInputElement;
-  private listView?: HTMLElement;
-  private gridView?: HTMLElement;
-  private graphView?: HTMLElement;
-  private analyticsView?: HTMLElement;
-  private loadingState?: HTMLElement;
-  private emptyState?: HTMLElement;
-  private contentTitle?: HTMLElement;
-  private typeFilter?: HTMLSelectElement;
-  private timeFilter?: HTMLSelectElement;
-  private sortFilter?: HTMLSelectElement;
-  private totalItemsEl?: HTMLElement;
-  private thisWeekEl?: HTMLElement;
+  private globalSearch?: HTMLInputElement | null;
+  private listView?: HTMLElement | null;
+  private gridView?: HTMLElement | null;
+  private graphView?: HTMLElement | null;
+  private analyticsView?: HTMLElement | null;
+  private loadingState?: HTMLElement | null;
+  private emptyState?: HTMLElement | null;
+  private contentTitle?: HTMLElement | null;
+  private typeFilter?: HTMLSelectElement | null;
+  private timeFilter?: HTMLSelectElement | null;
+  private sortFilter?: HTMLSelectElement | null;
+  private totalItemsEl?: HTMLElement | null;
+  private thisWeekEl?: HTMLElement | null;
 
   constructor() {
     this.contentStore = ContentStore.getInstance();
@@ -48,7 +53,75 @@ class DashboardController {
     this.analyticsEngine = AnalyticsEngine.getInstance();
     this.contentManager = ContentManager.getInstance();
     this.initializeEventListeners();
-    this.loadInitialData();
+    this.initializeDOMElements();
+
+    // Load sample data for testing
+    this.initializeSampleData().catch((error: Error) => {
+      console.error("Error loading sample data:", error);
+    });
+  }
+
+  private async initializeSampleData(): Promise<void> {
+    try {
+      await addSampleContent();
+      await addSampleRelationships();
+      await this.refreshContent(); // Refresh content after adding samples
+    } catch (error) {
+      console.error("Failed to initialize sample data:", error);
+      throw error;
+    }
+  }
+
+  private async refreshContent(): Promise<void> {
+    try {
+      // Show loading state
+      if (this.loadingState) {
+        this.loadingState.style.display = "block";
+      }
+      if (this.emptyState) {
+        this.emptyState.style.display = "none";
+      }
+
+      // Fetch all content
+      const allContent = await this.contentStore.list();
+      this.currentContent = allContent.data || [];
+      this.filteredContent = this.currentContent;
+
+      // Update UI elements
+      if (this.totalItemsEl) {
+        this.totalItemsEl.textContent = this.currentContent.length.toString();
+      }
+
+      // Count items from this week
+      const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const thisWeekCount = this.currentContent.filter(
+        (item) => new Date(item.timestamp) > oneWeekAgo
+      ).length;
+
+      if (this.thisWeekEl) {
+        this.thisWeekEl.textContent = thisWeekCount.toString();
+      }
+
+      // Hide loading state and show content
+      if (this.loadingState) {
+        this.loadingState.style.display = "none";
+      }
+
+      // Show empty state if no content
+      if (this.emptyState && this.currentContent.length === 0) {
+        this.emptyState.style.display = "block";
+      }
+
+      // Update current view
+      await this.updateView();
+    } catch (error) {
+      console.error("Error loading content:", error);
+      throw error;
+    }
+  }
+
+  private async updateView(): Promise<void> {
+    this.renderCurrentView();
   }
 
   private initializeEventListeners(): void {
@@ -80,6 +153,28 @@ class DashboardController {
     ) as HTMLSelectElement;
     this.totalItemsEl = document.getElementById("totalItems");
     this.thisWeekEl = document.getElementById("thisWeek");
+
+    // Initialize view buttons
+    document.querySelectorAll(".view-btn").forEach((button) => {
+      button.addEventListener("click", (e) => {
+        const viewType = (e.currentTarget as HTMLElement).dataset.view as
+          | "list"
+          | "grid"
+          | "graph"
+          | "analytics";
+        if (viewType) {
+          this.switchView(viewType);
+        }
+      });
+    });
+
+    // Initialize settings button
+    const settingsBtn = document.getElementById("settingsBtn");
+    if (settingsBtn) {
+      settingsBtn.addEventListener("click", () => {
+        chrome.runtime.openOptionsPage();
+      });
+    }
   }
 
   private setupEventHandlers(): void {
@@ -363,48 +458,241 @@ class DashboardController {
     if (!this.listView) return;
 
     this.listView.style.display = "block";
-    this.listView.innerHTML = "";
+    this.listView.innerHTML = `
+      <div class="content-list">
+        ${
+          this.filteredContent.length === 0
+            ? this.getEmptyStateHTML()
+            : this.filteredContent
+                .map((content) => this.createListItemHTML(content))
+                .join("")
+        }
+      </div>
+    `;
+  }
 
-    if (this.filteredContent.length === 0) {
-      this.showEmptyState();
-      return;
-    }
-
-    this.filteredContent.forEach((content) => {
-      const itemEl = this.createListItem(content);
-      this.listView!.appendChild(itemEl);
+  private createListItemHTML(content: StoredContent): string {
+    const date = new Date(content.timestamp).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
+
+    const concepts = content.concepts || [];
+    const tags = concepts
+      .slice(0, 3)
+      .map((concept) => `<span class="tag">${concept}</span>`)
+      .join("");
+
+    const relationships = Array.isArray(content.relationships)
+      ? content.relationships
+      : [];
+    const relationshipBadges = relationships
+      .slice(0, 3)
+      .map(
+        (rel) =>
+          `<span class="relationship-badge">${rel.type}: ${
+            rel.targetTitle || "Connected Content"
+          }</span>`
+      )
+      .join("");
+
+    return `
+      <div class="content-item">
+        <div class="content-main">
+          <div class="content-header">
+            <h3 class="content-title">${content.title}</h3>
+            <div class="content-meta">
+              <span>${date}</span>
+              <span>${content.category || "Uncategorized"}</span>
+            </div>
+          </div>
+          <p class="content-preview">${
+            content.preview || "No preview available"
+          }</p>
+          ${
+            concepts.length > 0 ? `<div class="content-tags">${tags}</div>` : ""
+          }
+          ${
+            relationships.length > 0
+              ? `<div class="relationships">${relationshipBadges}</div>`
+              : ""
+          }
+        </div>
+        <div class="content-stats">
+          <div class="stat-item">
+            <div class="stat-value">${content.timesAccessed || 0}</div>
+            <div class="stat-label">Views</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">${content.importance || 0}</div>
+            <div class="stat-label">Importance</div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   private renderGridView(): void {
     if (!this.gridView) return;
 
-    this.gridView.style.display = "grid";
-    this.gridView.innerHTML = "";
+    this.gridView.style.display = "block";
+    this.gridView.innerHTML = `
+      <div class="content-grid">
+        ${
+          this.filteredContent.length === 0
+            ? this.getEmptyStateHTML()
+            : this.filteredContent
+                .map((content) => this.createGridCardHTML(content))
+                .join("")
+        }
+      </div>
+    `;
+  }
 
-    if (this.filteredContent.length === 0) {
-      this.showEmptyState();
-      return;
-    }
-
-    this.filteredContent.forEach((content) => {
-      const cardEl = this.createGridCard(content);
-      this.gridView!.appendChild(cardEl);
+  private createGridCardHTML(content: StoredContent): string {
+    const date = new Date(content.timestamp).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
+
+    const concepts = content.concepts || [];
+    const tags = concepts
+      .slice(0, 2)
+      .map((concept) => `<span class="tag">${concept}</span>`)
+      .join("");
+
+    return `
+      <div class="grid-card">
+        <div class="card-header">
+          <div class="card-category">${
+            content.category || "Uncategorized"
+          }</div>
+          <h3 class="card-title">${content.title}</h3>
+        </div>
+        <div class="card-content">
+          <div class="card-preview">${
+            content.text?.substring(0, 150) || "No content available"
+          }...</div>
+          ${concepts.length > 0 ? `<div class="card-tags">${tags}</div>` : ""}
+        </div>
+        <div class="card-footer">
+          <div class="card-meta">
+            <span class="card-date">${date}</span>
+            <span class="card-views">${content.timesAccessed || 0} views</span>
+          </div>
+          ${this.getImportanceIndicatorHTML(content.importance || 0)}
+        </div>
+      </div>
+    `;
+  }
+
+  private getImportanceIndicatorHTML(importance: number): string {
+    const maxDots = 5;
+    const filledDots = Math.min(Math.round(importance), maxDots);
+    const dots = Array(maxDots)
+      .fill(0)
+      .map(
+        (_, i) =>
+          `<span class="importance-dot ${
+            i < filledDots ? "filled" : ""
+          }"></span>`
+      )
+      .join("");
+
+    return `
+      <div class="importance-indicator">
+        <div class="importance-dots">${dots}</div>
+        <span class="importance-label">Importance</span>
+      </div>
+    `;
+  }
+
+  private getEmptyStateHTML(): string {
+    return `
+      <div class="empty-state">
+        <div class="empty-state-icon">📚</div>
+        <h3>No Content Found</h3>
+        <p>Try adjusting your filters or add some new content to get started.</p>
+      </div>
+    `;
   }
 
   private async renderGraphView(): Promise<void> {
     if (!this.graphView) return;
 
     this.graphView.style.display = "block";
+    this.graphView.innerHTML = `
+      <div class="graph-container">
+        <div id="knowledgeGraph"></div>
+        <div class="graph-controls">
+          <button class="control-btn zoom-in">+</button>
+          <button class="control-btn zoom-out">-</button>
+          <button class="control-btn reset">Reset</button>
+          <select class="layout-select">
+            <option value="force">Force</option>
+            <option value="radial">Radial</option>
+            <option value="hierarchical">Hierarchical</option>
+          </select>
+        </div>
+        <div class="graph-legend">
+          <div class="legend-title">Categories</div>
+          <div class="legend-items">
+            ${this.getCategoryLegendHTML()}
+          </div>
+        </div>
+      </div>
+    `;
 
     if (!this.knowledgeGraph) {
       await this.initializeKnowledgeGraph();
     }
 
     if (this.knowledgeGraph) {
-      this.updateKnowledgeGraphData();
+      await this.updateKnowledgeGraphData();
+      this.setupGraphControls();
     }
+  }
+
+  private getCategoryLegendHTML(): string {
+    const categories = [
+      ...new Set(this.filteredContent.map((c) => c.category || "other")),
+    ];
+    return categories
+      .map(
+        (category) => `
+      <div class="legend-item">
+        <span class="legend-color" style="background: ${this.getCategoryColor(
+          category
+        )}"></span>
+        <span class="legend-label">${
+          category.charAt(0).toUpperCase() + category.slice(1)
+        }</span>
+      </div>
+    `
+      )
+      .join("");
+  }
+
+  private setupGraphControls(): void {
+    const container = this.graphView?.querySelector(".graph-container");
+    if (!container || !this.knowledgeGraph) return;
+
+    const zoomIn = container.querySelector(".zoom-in");
+    const zoomOut = container.querySelector(".zoom-out");
+    const reset = container.querySelector(".reset");
+    const layoutSelect = container.querySelector(
+      ".layout-select"
+    ) as HTMLSelectElement;
+
+    zoomIn?.addEventListener("click", () => this.knowledgeGraph?.zoomIn());
+    zoomOut?.addEventListener("click", () => this.knowledgeGraph?.zoomOut());
+    reset?.addEventListener("click", () => this.knowledgeGraph?.resetView());
+    layoutSelect?.addEventListener("change", (e) => {
+      const layout = (e.target as HTMLSelectElement).value;
+      this.knowledgeGraph?.setLayout(layout);
+    });
   }
 
   private renderAnalyticsView(): void {
@@ -513,24 +801,84 @@ class DashboardController {
       const container = document.getElementById("knowledgeGraph");
       if (!container) return;
 
-      // Initialize the interactive knowledge graph
+      // Initialize the interactive knowledge graph with enhanced options
       this.knowledgeGraph = new InteractiveKnowledgeGraph(container, {
-        width: 800,
-        height: 600,
+        width: container.clientWidth,
+        height: container.clientHeight || 600,
         showLabels: true,
         showClusters: true,
         enableDrag: true,
         enableZoom: true,
+        defaultZoom: 0.8,
+        nodeSize: {
+          min: 10,
+          max: 30,
+          defaultSize: 20,
+          property: "importance",
+        },
+        edgeWidth: {
+          min: 1,
+          max: 5,
+          defaultWidth: 2,
+          property: "strength",
+        },
+        colors: {
+          node: this.getCategoryColor.bind(this),
+          edge: "#9aa0a6",
+          cluster: {
+            article: "#e8f0fe",
+            documentation: "#e6f4ea",
+            video: "#fce8e6",
+            social: "#fff7e6",
+            other: "#f1f3f4",
+          },
+        },
         onNodeClick: (nodeId) => this.openContent(nodeId),
         onNodeHover: (nodeId) => {
-          // Could show additional info in a tooltip
-          console.log("Hovering node:", nodeId);
+          const content = this.filteredContent.find((c) => c.id === nodeId);
+          if (content) {
+            // Show tooltip with content details
+            const tooltip = document.createElement("div");
+            tooltip.className = "graph-tooltip";
+            tooltip.innerHTML = `
+              <h4>${content.title}</h4>
+              <p>${content.category || "Uncategorized"}</p>
+              <div class="tooltip-stats">
+                <span>Views: ${content.timesAccessed || 0}</span>
+                <span>Importance: ${content.importance || 0}</span>
+              </div>
+            `;
+            // Position tooltip near mouse
+            // Implementation depends on your tooltip system
+          }
+        },
+        layout: {
+          name: "force",
+          options: {
+            gravity: -50,
+            linkDistance: 100,
+            linkStrength: 1,
+            friction: 0.9,
+            charge: -500,
+          },
         },
       });
 
+      // Initialize with current data
       await this.updateKnowledgeGraphData();
+
+      // Add window resize handler
+      window.addEventListener("resize", () => {
+        if (this.knowledgeGraph && container) {
+          this.knowledgeGraph.setSize(
+            container.clientWidth,
+            container.clientHeight
+          );
+        }
+      });
     } catch (error) {
       console.error("Failed to initialize knowledge graph:", error);
+      throw error;
     }
   }
 
@@ -605,14 +953,14 @@ class DashboardController {
   }
 
   private getCategoryColor(category: string): string {
-    const colors: Record<string, string> = {
+    const colors = {
       article: "#4285f4",
       documentation: "#34a853",
       video: "#ea4335",
       social: "#fbbc04",
       other: "#9aa0a6",
-    };
-    return colors[category] || colors.other;
+    } as const;
+    return colors[category as keyof typeof colors] ?? colors.other;
   }
 
   private async loadAnalyticsData(): Promise<void> {

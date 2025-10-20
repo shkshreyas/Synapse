@@ -26,7 +26,7 @@ class PopupController {
   }
 
   private async initialize(): Promise<void> {
-    console.log("MindScribe popup initializing...");
+    console.log("Synapse popup initializing...");
 
     // Wait for DOM to be ready
     if (document.readyState === "loading") {
